@@ -14,3 +14,5 @@ Source/*.VC.opendb
 Source/*.VC.db
 Source/.vs/
 Source/.vscode/
+Source/.idea/
+Source/cmake-build-debug/
