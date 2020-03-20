@@ -10,6 +10,7 @@
 #include "MemScanner/MemScanWidget.h"
 #include "MemViewer/MemViewerWidget.h"
 #include "MemWatcher/MemWatchWidget.h"
+#include "SmbUtil/SmbUtilWidget.h"
 
 class MainWindow : public QMainWindow
 {
@@ -49,6 +50,7 @@ private:
   void makeMemViewer();
   void firstHookAttempt();
 
+  SmbUtilWidget* m_smbUtil;
   MemWatchWidget* m_watcher;
   MemScanWidget* m_scanner;
   MemViewerWidget* m_viewer;
