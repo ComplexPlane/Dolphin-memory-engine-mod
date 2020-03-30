@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <string>
 
 class SmbUtil
 {
@@ -21,4 +22,8 @@ private:
   };
 
   std::vector<Region> m_regions;
+
+  static std::vector<Region> subtractIgnoredRegions(Region region, const std::vector<Region>&
+      ignoredRegions);
+  static void printRegions(const std::string& name, const std::vector<Region>& regions);
 };
