@@ -15,6 +15,8 @@ public:
 
   void onSaveState();
   void onLoadState();
+  void onBisectGood();
+  void onBisectBad();
 
 private:
   void initializeWidgets();
@@ -22,6 +24,8 @@ private:
 
   QPushButton* m_btnSaveState;
   QPushButton* m_btnLoadState;
+  QPushButton* m_btnBisectGood;
+  QPushButton* m_btnBisectBad;
   SmbUtil* m_smbUtil;
 
 };

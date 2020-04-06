@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+IFS=$'\n\t'
+
 mkdir -p build && cd build
 cmake ..
 make -j$(nproc)
