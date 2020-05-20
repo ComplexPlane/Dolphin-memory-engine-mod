@@ -11,23 +11,22 @@ SmbUtil::Region::Region(const char *name, uint32_t addr, uint32_t size):
 std::string SmbUtil::Region::briefStr() {
   // Lol C-style
   char out[100] = {};
-  snprintf(out, sizeof(out), "[0x%08X, 0x%08X)", addr, addr + static_cast<uint32_t>(buf.size()));
+  snprintf(out, sizeof(out), "[0x%08X, 0x%08X) (size 0x%X)",
+      addr,
+      addr + static_cast<uint32_t>(buf.size()),
+      buf.size());
   return out;
 }
 
 SmbUtil::SmbUtil():
-    m_bisectState{BisectState::TRYING_LEFT},
-    m_leftGood{false},
-    m_rightGood{false},
-    m_leftRegion("empty", 0x80000000, 0),
-//    m_leftRegion{"mainloop_bss0_righthalf", 0x805b0600, 0x79d2c},
-    m_rightRegion("empty", 0x80000000, 0)
-{
-std::vector<Region> positiveRegions{
-    {"magic_mainloop_bss_region1", 0x8054E03C, 224},
-    {"magic_mainloop_bss_region2", 0x805BC974, 112},
-    {"magic_mainloop_bss_region3", 0x805BD82E, 28},
+    m_alwaysRegions{
+      // A good start to savestates! But something is clearly missing (besides stage heap)
+//    {"magic_mainloop_bss_region1", 0x8054E03C, 224},
+//    {"magic_mainloop_bss_region2", 0x805BC974, 112},
+//    {"magic_mainloop_bss_region3", 0x805BD82E, 28},
+//    {"mainloop_bss0_smth", 0x8054c8e0, 0xdda4},
     {"timer", 0x80553974, 2},
+    {"small_bss_first_half_region", 0x8054E03C, 0xe0},
 
 //    {"camera", 0x8054E058, 32},
 //    {"ball", 0x805bc9a0, 432},
@@ -44,46 +43,51 @@ std::vector<Region> positiveRegions{
 //      {"dol_bss0",  0x80144d20, 0x53b20},
 //      {"dol_data6", 0x80198840, 0x2e0},
 //      {"dol_bss1",  0x80198b20, 0x8e0},
-//
+
 //      {"mainloop_data0", 0x803dd600, 0x4},
 //      {"mainloop_data1", 0x803dd604, 0x4},
 //      {"mainloop_data3", 0x80444160, 0x806bc},
 //      {"mainloop_bss0", 0x8054c8e0, 0xdda4c},
-//
+
 //      {"maingame_data0", 0x80914ab0, 0x4},
 //      {"maingame_data1", 0x80914ab4, 0x4},
 //      {"maingame_data3", 0x80915678, 0x5641c},
 //      {"maingame_bss0", 0x8097f4a0, 0x65f0},
 //
 //      {"main_game_main_heap", 0x808f3fc0, 1994304},
-//      {"main_game_stage_heap", 0x80adae00, 3276832},
+        {"main_game_stage_heap", 0x80adae00, 3276832},
 //      {"main_game_bg_heap", 0x80dfae20, 2293792},
-//      {"main_game_char_heap", 0x8102ae40, 4718624},
+        {"main_game_char_heap", 0x8102ae40, 4718624},
 //      {"main_game_replay_heap", 0x814aae60, 163872},
-  };
+    },
 
-  std::vector<Region> ignoreRegions{
-      // Don't save and restore GXFifoObj
-//      { "fifoobj1", 0x80147498, 128},
-//      { "fifoobj2", 0x8018fe80, 128},
-  };
+    m_bisectRegions{
+        {"", 0x805E8654, 0x1BB4},
+        {"", 0x805EA208, 0x1BB8},
+        {"", 0x805BD1B4, 0x1bb4},
+        {"", 0x805BC3D8, 0x374},
+        {"", 0x805BC74C, 0x378},
+    },
 
-  for (auto& posRegion : positiveRegions)
-  {
-    std::vector<Region> splitRegions = subtractIgnoredRegions(posRegion, ignoreRegions);
-    m_regions.insert(m_regions.end(), splitRegions.begin(), splitRegions.end());
-  }
+    m_bisectState{BisectState::CHOOSE_NEW_REGION},
+    m_leftGood{false},
+    m_rightGood{false},
+    m_nextRegionChoice{0},
 
-  printRegions("Positive regions", positiveRegions);
-  printRegions("Negative regions", ignoreRegions);
-  printRegions("Final regions", m_regions);
-
+    m_leftRegion{"empty", 0x80000000, 0},
+    m_rightRegion{"empty", 0x80000000, 0}
+{
   printBisectState();
 }
 
 void SmbUtil::saveState()
 {
-  for (auto& region : m_regions)
+  for (auto& region : m_alwaysRegions)
+  {
+    saveRegion(region);
+  }
+
+  for (auto& region : m_bisectRegions)
   {
     saveRegion(region);
   }
@@ -93,15 +97,25 @@ void SmbUtil::saveState()
     case BisectState::TRYING_LEFT:
       saveRegion(m_leftRegion);
       break;
+
     case BisectState::TRYING_RIGHT:
       saveRegion(m_rightRegion);
+      break;
+
+    case BisectState::CHOOSE_NEW_REGION:
+    case BisectState::DONE:
       break;
   }
 }
 
 void SmbUtil::loadState()
 {
-  for (auto& region : m_regions)
+  for (auto& region : m_alwaysRegions)
+  {
+    loadRegion(region);
+  }
+
+  for (auto& region : m_bisectRegions)
   {
     loadRegion(region);
   }
@@ -111,8 +125,13 @@ void SmbUtil::loadState()
     case BisectState::TRYING_LEFT:
       loadRegion(m_leftRegion);
       break;
+
     case BisectState::TRYING_RIGHT:
       loadRegion(m_rightRegion);
+      break;
+
+    case BisectState::CHOOSE_NEW_REGION:
+    case BisectState::DONE:
       break;
   }
 }
@@ -145,6 +164,16 @@ void SmbUtil::bisectGood() {
       m_rightGood = true;
       transitionToNextRegion();
       break;
+
+    case BisectState::CHOOSE_NEW_REGION:
+      m_bisectState = BisectState::TRYING_LEFT;
+      m_leftRegion = m_bisectRegions[m_nextRegionChoice];
+      m_bisectRegions.erase(m_bisectRegions.begin() + m_nextRegionChoice);
+      m_rightRegion = {"empty", 0x80000000, 0};
+      break;
+
+    case BisectState::DONE:
+      break;
   }
 
   printBisectState();
@@ -161,6 +190,18 @@ void SmbUtil::bisectBad() {
       m_rightGood = false;
       transitionToNextRegion();
       break;
+
+    case BisectState::CHOOSE_NEW_REGION:
+      m_nextRegionChoice++;
+      if (m_nextRegionChoice >= m_bisectRegions.size())
+      {
+        printf("No region chosen to bisect, finishing.\n");
+        m_bisectState = BisectState::DONE;
+      }
+      break;
+
+    case BisectState::DONE:
+      break;
   }
 
   printBisectState();
@@ -169,11 +210,17 @@ void SmbUtil::bisectBad() {
 void SmbUtil::transitionToNextRegion() {
   if (m_leftGood && m_rightGood)
   {
-    m_bisectState = BisectState::BOTH_WORK;
+    printf("Both regions work?\n");
+    m_bisectState = BisectState::DONE;
   }
   else if (!m_leftGood && !m_rightGood)
   {
-    m_bisectState = BisectState::NEITHER_WORK;
+    printf("Neither region works alone.\n");
+
+    m_bisectState = BisectState::CHOOSE_NEW_REGION;
+    m_nextRegionChoice = 0;
+    m_bisectRegions.insert(m_bisectRegions.begin(), m_rightRegion);
+    m_bisectRegions.insert(m_bisectRegions.begin(), m_leftRegion);
   }
   else
   {
@@ -197,25 +244,37 @@ void SmbUtil::transitionToNextRegion() {
 void SmbUtil::printBisectState() {
   switch (m_bisectState)
   {
-    case BisectState::TRYING_LEFT:
+    case BisectState::TRYING_LEFT: {
       printf("Trying left region: %s\n", m_leftRegion.briefStr().c_str());
       break;
+    }
 
-    case BisectState::TRYING_RIGHT:
+    case BisectState::TRYING_RIGHT: {
       printf("Trying right region: %s\n", m_rightRegion.briefStr().c_str());
       break;
+    }
 
-    case BisectState::BOTH_WORK:
-      printf("Saving either region works?? %s and %s\n",
-          m_leftRegion.briefStr().c_str(),
-          m_rightRegion.briefStr().c_str());
+    case BisectState::CHOOSE_NEW_REGION: {
+      int32_t bisectRegionTotalSize = 0;
+      for (auto &region : m_bisectRegions) {
+        bisectRegionTotalSize += region.buf.size();
+      }
+      printf("Available bisect regions (%d bytes total):\n", bisectRegionTotalSize);
+      for (auto &region : m_bisectRegions) {
+        printf("%s\n", region.briefStr().c_str());
+      }
+      printf("End available bisect regions.\n");
+      printf("Bisect this region next? Index %d (%d avail) %s\n",
+             m_nextRegionChoice,
+             m_bisectRegions.size(),
+             m_bisectRegions[m_nextRegionChoice].briefStr().c_str());
       break;
+    }
 
-    case BisectState::NEITHER_WORK:
-      printf("Saving neither region alone works. %s and %s\n",
-             m_leftRegion.briefStr().c_str(),
-             m_rightRegion.briefStr().c_str());
+    case BisectState::DONE: {
+      printf("Done bisecting.\n");
       break;
+    }
   }
 }
 

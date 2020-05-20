@@ -26,16 +26,23 @@ private:
   };
 
   enum class BisectState {
+    CHOOSE_NEW_REGION,
     TRYING_LEFT,
     TRYING_RIGHT,
-    NEITHER_WORK,
-    BOTH_WORK,
+    DONE,
   };
 
-  std::vector<Region> m_regions;
+  // Fixed set of regions to always save/restore
+  std::vector<Region> m_alwaysRegions;
+
+  // Pool of regions which we can choose to bisect
+  std::vector<Region> m_bisectRegions;
 
   BisectState m_bisectState;
   bool m_leftGood, m_rightGood;
+  int m_nextRegionChoice;
+
+  // The left half and right half of the region we are currently bisecting
   Region m_leftRegion, m_rightRegion;
 
   void saveRegion(Region& region);
