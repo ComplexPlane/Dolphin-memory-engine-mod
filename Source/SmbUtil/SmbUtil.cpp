@@ -23,14 +23,17 @@ SmbUtil::SmbUtil():
       // New sub-256-byte mainloop BSS chunks which appear to work with stage and char heap saving
       // Except not rly, playing with aiai on expert ex 9 screws up the sprites again...
       {"timer", 0x80553974, 2},
-      {"small_bss_first_half_region", 0x8054E03C, 0xe0},
-      {"", 0x805BC66C, 0x70},
-      {"", 0x805BC974, 0x70},
-      {"", 0x805BD830, 0x1C},
-      {"", 0x805E90B4, 0x530},
-      {"", 0x805E9650, 0x70},
-      {"", 0x805EA1B4, 0x1C},
-      {"", 0x805EA208, 0x1B8},
+      {"", 0x8054E03C, 0xe0}, // Camera-related
+
+//      {"", 0x805BC66C, 0x70}, // Sprite-related probably
+
+      {"", 0x805BC974, 0x88}, // Physics-related
+      {"", 0x805BD830, 0x1C}, // Physics-related probably
+
+//      {"", 0x805E90B4, 0x530}, // Subregion of sprite array at 0x805e90ac GC
+//      {"", 0x805E9650, 0x70}, // Also part of the sprite array
+//      {"", 0x805EA1B4, 0x1C}, // Aaaalso part of the sprite array
+//      {"", 0x805EA208, 0x1B8}, // You guessed it, also part of the sprite array
 
       // A good start to savestates! But something is clearly missing (besides stage heap)
 //    {"magic_mainloop_bss_region1", 0x8054E03C, 224},
@@ -72,7 +75,9 @@ SmbUtil::SmbUtil():
     },
 
     m_bisectRegions{
-      {"main_game_char_heap", 0x8102ae40, 4718624},
+//        {"main_game_char_heap", 0x8102ae40, 4718624},
+        {"empty", 0x80000000, 0},
+//        {"mainloop_bss0_part2", 0x805bb600, 0x3ed2c},
     },
 
     m_bisectState{BisectState::CHOOSE_NEW_REGION},
