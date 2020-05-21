@@ -25,6 +25,14 @@ private:
     std::vector<char> buf;
   };
 
+  struct DynamicRegion {
+    DynamicRegion(const char *name, std::vector<uint32_t> addrChain, uint32_t size);
+
+    const char *name;
+    std::vector<uint32_t> addrChain;
+    std::vector<char> buf;
+  };
+
   enum class BisectState {
     CHOOSE_NEW_REGION,
     TRYING_LEFT,
@@ -38,6 +46,9 @@ private:
   // Pool of regions which we can choose to bisect
   std::vector<Region> m_bisectRegions;
 
+  // Dynamic regions (always saved/restored)
+  std::vector<DynamicRegion> m_dynamicRegions;
+
   BisectState m_bisectState;
   bool m_leftGood, m_rightGood;
   int m_nextRegionChoice;
@@ -47,6 +58,9 @@ private:
 
   void saveRegion(Region& region);
   void loadRegion(const Region& region);
+  void saveDynamicRegion(DynamicRegion& region);
+  void loadDynamicRegion(const DynamicRegion& region);
+  uint32_t getDynamicAddr(const DynamicRegion &region);
 
   void transitionToNextRegion();
   void printBisectState();

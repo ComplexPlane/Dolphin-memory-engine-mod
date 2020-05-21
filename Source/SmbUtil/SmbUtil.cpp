@@ -1,12 +1,24 @@
 #include "SmbUtil.h"
 
 #include <algorithm>
+#include <utility>
 
 #include "../DolphinProcess/DolphinAccessor.h"
 #include "../Common/CommonUtils.h"
 
+// TODO
+// - Terminate bisection when region size reaches 4 bytes
+// - Sort regions by size after each bisect
+// - Merge intervals together and print ready to paste into C++?
+
 SmbUtil::Region::Region(const char *name, uint32_t addr, uint32_t size):
     name{name}, addr{addr}, buf(size) {}
+
+SmbUtil::DynamicRegion::DynamicRegion(
+    const char *name,
+    std::vector<uint32_t> addrChain,
+    uint32_t size):
+    name{name}, addrChain{std::move(addrChain)}, buf(size) {}
 
 std::string SmbUtil::Region::briefStr() {
   // Lol C-style
@@ -27,13 +39,17 @@ SmbUtil::SmbUtil():
 
 //      {"", 0x805BC66C, 0x70}, // Sprite-related probably
 
-      {"", 0x805BC974, 0x88}, // Physics-related
+      {"", 0x805bc9a0, 0x5c}, // First bit of player 1 ball struct
       {"", 0x805BD830, 0x1C}, // Physics-related probably
 
 //      {"", 0x805E90B4, 0x530}, // Subregion of sprite array at 0x805e90ac GC
 //      {"", 0x805E9650, 0x70}, // Also part of the sprite array
 //      {"", 0x805EA1B4, 0x1C}, // Aaaalso part of the sprite array
 //      {"", 0x805EA208, 0x1B8}, // You guessed it, also part of the sprite array
+
+        // Character rotation quaternion in char heap, directly affects physics
+        // (this is with meemee on curve bridge)
+//        {"", 0x81080248, 0x10},
 
       // A good start to savestates! But something is clearly missing (besides stage heap)
 //    {"magic_mainloop_bss_region1", 0x8054E03C, 224},
@@ -70,14 +86,17 @@ SmbUtil::SmbUtil():
 //      {"main_game_main_heap", 0x808f3fc0, 1994304},
         {"main_game_stage_heap", 0x80adae00, 3276832},
 //      {"main_game_bg_heap", 0x80dfae20, 2293792},
-        {"main_game_char_heap", 0x8102ae40, 4718624},
+//        {"main_game_char_heap", 0x8102ae40, 4718624},
 //      {"main_game_replay_heap", 0x814aae60, 163872},
     },
 
     m_bisectRegions{
 //        {"main_game_char_heap", 0x8102ae40, 4718624},
         {"empty", 0x80000000, 0},
-//        {"mainloop_bss0_part2", 0x805bb600, 0x3ed2c},
+    },
+
+    m_dynamicRegions{
+        {"chara_rot_quat", {0x805bc9a0 + 260, 648}, 16},
     },
 
     m_bisectState{BisectState::CHOOSE_NEW_REGION},
@@ -101,6 +120,11 @@ void SmbUtil::saveState()
   for (auto& region : m_bisectRegions)
   {
     saveRegion(region);
+  }
+
+  for (auto& region : m_dynamicRegions)
+  {
+    saveDynamicRegion(region);
   }
 
   switch (m_bisectState)
@@ -129,6 +153,11 @@ void SmbUtil::loadState()
   for (auto& region : m_bisectRegions)
   {
     loadRegion(region);
+  }
+
+  for (auto& region : m_dynamicRegions)
+  {
+    loadDynamicRegion(region);
   }
 
   switch (m_bisectState)
@@ -161,6 +190,47 @@ void SmbUtil::loadRegion(const SmbUtil::Region &region) {
       region.buf.data(),
       region.buf.size(),
       false);
+}
+
+void SmbUtil::saveDynamicRegion(SmbUtil::DynamicRegion& region)
+{
+  DolphinComm::DolphinAccessor::readFromRAM(
+      Common::dolphinAddrToOffset(getDynamicAddr(region)),
+      region.buf.data(),
+      region.buf.size(),
+      false);
+}
+
+void SmbUtil::loadDynamicRegion(const SmbUtil::DynamicRegion &region)
+{
+  DolphinComm::DolphinAccessor::writeToRAM(
+      Common::dolphinAddrToOffset(getDynamicAddr(region)),
+      region.buf.data(),
+      region.buf.size(),
+      false);
+}
+
+uint32_t SmbUtil::getDynamicAddr(const SmbUtil::DynamicRegion& region)
+{
+  uint32_t addr = region.addrChain.at(0);
+  for (int i = 1; i < region.addrChain.size(); i++)
+  {
+    uint8_t bigEndianAddr[4] = {};
+    DolphinComm::DolphinAccessor::readFromRAM(
+        Common::dolphinAddrToOffset(addr),
+        reinterpret_cast<char *>(bigEndianAddr),
+        sizeof(bigEndianAddr),
+        false);
+
+    uint32_t baseAddr = bigEndianAddr[0] << 24u
+        | bigEndianAddr[1] << 16u
+        | bigEndianAddr[2] << 8u
+        | bigEndianAddr[3] << 0u;
+
+    addr = baseAddr + region.addrChain[i];
+  }
+
+  return addr;
 }
 
 void SmbUtil::bisectGood() {
@@ -333,3 +403,4 @@ void SmbUtil::printRegions(const std::string& name, const std::vector<Region>& r
   }
   printf("\n");
 }
+
