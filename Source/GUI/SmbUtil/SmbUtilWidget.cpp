@@ -26,6 +26,8 @@ void SmbUtilWidget::initializeWidgets() {
   connect(m_smbUtil, &SmbUtil::onLog, this, &SmbUtilWidget::printLog);
 
   m_smbUtil->printBisectState();
+
+  hookStatusChanged(false);
 }
 
 void SmbUtilWidget::makeLayouts() {
@@ -65,4 +67,13 @@ void SmbUtilWidget::printLog(const QString& string) {
 
 SmbUtilWidget::~SmbUtilWidget() {
   delete m_smbUtil;
+}
+
+void SmbUtilWidget::hookStatusChanged(bool status)
+{
+  m_btnSaveState->setEnabled(status);
+  m_btnLoadState->setEnabled(status);
+  m_btnBisectGood->setEnabled(status);
+  m_btnBisectBad->setEnabled(status);
+  m_textEdit->setEnabled(status);
 }

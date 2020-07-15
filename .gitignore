@@ -16,4 +16,5 @@ Source/.vs/
 Source/.vscode/
 Source/.idea/
 Source/cmake-build-debug/
+Source/cmake-build-release/
 .idea/

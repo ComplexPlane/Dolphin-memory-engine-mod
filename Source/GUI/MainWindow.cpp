@@ -283,6 +283,7 @@ void MainWindow::onHookAttempt()
     m_watcher->getFreezeTimer()->start(SConfig::getInstance().getFreezeTimerMs());
     m_viewer->getUpdateTimer()->start(SConfig::getInstance().getViewerUpdateTimerMs());
     m_viewer->hookStatusChanged(true);
+    m_smbUtil->hookStatusChanged(true);
     updateMem2Status();
   }
 }
@@ -294,6 +295,7 @@ void MainWindow::onUnhook()
   m_watcher->getFreezeTimer()->stop();
   m_viewer->getUpdateTimer()->stop();
   m_viewer->hookStatusChanged(false);
+  m_smbUtil->hookStatusChanged(false);
   m_lblMem2Status->setText(QString(""));
   DolphinComm::DolphinAccessor::unHook();
   updateDolphinHookingStatus();

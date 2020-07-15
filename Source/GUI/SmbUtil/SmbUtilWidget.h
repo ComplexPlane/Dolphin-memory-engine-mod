@@ -19,6 +19,8 @@ public:
   void onBisectGood();
   void onBisectBad();
 
+  void hookStatusChanged(bool status);
+
 private:
   void initializeWidgets();
   void makeLayouts();
