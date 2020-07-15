@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.10.0)
 project(Dolphin-memory-engine)
 
 if(WIN32)
@@ -34,7 +34,7 @@ set(SRCS ${DolphinProcessSrc}
          GUI/MainWindow.cpp
          main.cpp)
 
-set(CMAKE_INCLUE_CURRENT_DIR ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Core REQUIRED)

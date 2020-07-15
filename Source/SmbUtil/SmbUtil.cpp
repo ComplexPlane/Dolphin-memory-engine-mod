@@ -280,7 +280,7 @@ void SmbUtil::bisectBad() {
     case BisectState::CHOOSE_NEW_REGION:
       m_nextRegionChoice++;
       if (m_nextRegionChoice >= m_bisectRegions.size()) {
-        printf("No region chosen to bisect, finishing.\n");
+        logf("No region chosen to bisect, finishing.");
         m_bisectState = BisectState::DONE;
       }
       break;
@@ -294,11 +294,11 @@ void SmbUtil::bisectBad() {
 
 void SmbUtil::transitionToNextRegion() {
   if (m_leftGood && m_rightGood) {
-    printf("Both regions work?\n");
+    logf("Both regions work?");
     m_bisectState = BisectState::CHOOSE_NEW_REGION;
     m_nextRegionChoice = 0;
   } else if (!m_leftGood && !m_rightGood) {
-    printf("Neither region works alone.\n");
+    logf("Neither region works alone.");
 
     m_bisectState = BisectState::CHOOSE_NEW_REGION;
     m_nextRegionChoice = 0;
@@ -325,12 +325,12 @@ void SmbUtil::transitionToNextRegion() {
 void SmbUtil::printBisectState() {
   switch (m_bisectState) {
     case BisectState::TRYING_LEFT: {
-      printf("Trying left region: %s\n", m_leftRegion.briefStr().c_str());
+      logf("Trying left region: %s", m_leftRegion.briefStr().c_str());
       break;
     }
 
     case BisectState::TRYING_RIGHT: {
-      printf("Trying right region: %s\n", m_rightRegion.briefStr().c_str());
+      logf("Trying right region: %s", m_rightRegion.briefStr().c_str());
       break;
     }
 
@@ -339,12 +339,12 @@ void SmbUtil::printBisectState() {
       for (auto &region : m_bisectRegions) {
         bisectRegionTotalSize += region.buf.size();
       }
-      printf("Available bisect regions (%d bytes total):\n", bisectRegionTotalSize);
+      logf("Available bisect regions (%d bytes total):", bisectRegionTotalSize);
       for (auto &region : m_bisectRegions) {
-        printf("%s\n", region.briefStr().c_str());
+        logf("%s", region.briefStr().c_str());
       }
-      printf("End available bisect regions.\n");
-      printf("Bisect this region next? Index %d (%d avail) %s\n",
+      logf("End available bisect regions.");
+      logf("Bisect this region next? Index %d (%d avail) %s",
              m_nextRegionChoice,
              m_bisectRegions.size(),
              m_bisectRegions[m_nextRegionChoice].briefStr().c_str());
@@ -352,7 +352,7 @@ void SmbUtil::printBisectState() {
     }
 
     case BisectState::DONE: {
-      printf("Done bisecting.\n");
+      logf("Done bisecting.");
       break;
     }
   }
@@ -390,11 +390,12 @@ std::vector<Region> &ignoredRegions) {
   return oldRegions;
 }
 
-void SmbUtil::printRegions(const std::string &name, const std::vector<Region> &regions) {
-  printf("%s\n", name.c_str());
-  for (auto &region : regions) {
-    printf("%s 0x%08X 0x%08X\n", region.name, region.addr, region.addr + region.buf.size());
-  }
-  printf("\n");
-}
+void SmbUtil::logf(const char *fmt, ...)
+{
+  va_list args;
+  va_start(args, fmt);
+  QString msg = QString::vasprintf(fmt, args);
+  va_end(args);
 
+  emit onLog(msg);
+}

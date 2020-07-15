@@ -2,6 +2,7 @@
 
 #include <QWidget>
 #include <QPushButton>
+#include <QPlainTextEdit>
 
 #include "../../SmbUtil/SmbUtil.h"
 
@@ -26,6 +27,8 @@ private:
   QPushButton* m_btnLoadState;
   QPushButton* m_btnBisectGood;
   QPushButton* m_btnBisectBad;
+  QPlainTextEdit* m_textEdit;
   SmbUtil* m_smbUtil;
 
+  void printLog(const QString& string);
 };
