@@ -46,7 +46,7 @@ SmbUtil::SmbUtil() :
 
         {"some_ape_region_in_chara_heap", 0x81080046, 0x1},
 
-//      {"", 0x805bc9a0, 0x1b0}, // Entire ball struct
+      {"", 0x805bc9a0, 0x1b0}, // Entire ball struct
 
 //      {"", 0x805E90B4, 0x530}, // Subregion of sprite array at 0x805e90ac GC
 //      {"", 0x805E9650, 0x70}, // Also part of the sprite array
@@ -55,7 +55,7 @@ SmbUtil::SmbUtil() :
 
         // Character rotation quaternion in char heap, directly affects physics
         // (this is with meemee on curve bridge)
-//        {"", 0x81080248, 0x10},
+        {"", 0x81080248, 0x10},
 
         // A good start to savestates! But something is clearly missing (besides stage heap)
 //    {"magic_mainloop_bss_region1", 0x8054E03C, 224},
@@ -70,7 +70,7 @@ SmbUtil::SmbUtil() :
 //      {"inputs_rawsi_something", 0x80146600, 8},
 
 //      {"mainloop_bss0_part1", 0x8054c8e0, 0x6ed20},
-//      {"mainloop_bss0_part2", 0x805bb600, 0x6ed2c},
+      {"mainloop_bss0_part2", 0x805bb600, 0x6ed2c},
 
 //      {"dol_data0", 0x80005620, 0x740},
 //      {"dol_data1", 0x80005d60, 0xae0},
@@ -90,7 +90,7 @@ SmbUtil::SmbUtil() :
 //      {"maingame_bss0", 0x8097f4a0, 0x65f0},
 //
 //      {"main_game_main_heap", 0x808f3fc0, 1994304},
-        {"main_game_stage_heap",          0x80adae00, 3276832},
+//        {"main_game_stage_heap",          0x80adae00, 3276832},
 //      {"main_game_bg_heap", 0x80dfae20, 2293792},
 //      {"main_game_char_heap", 0x8102ae40, 4718624},
 //      {"main_game_replay_heap", 0x814aae60, 163872},
@@ -99,6 +99,8 @@ SmbUtil::SmbUtil() :
 //      {"mainloop_bss_quarter1_spark_something", 0x8054E1A4, 56},
         {"sprites", 0x805e90ac, 80 * 208},
         {"sprite_status_list", 0x805bc694, 80},
+        {"sub mode", 0x8054dc34, 4},
+        {"ball mode", 0x80553970, 4},
     },
 
     m_bisectRegions{
@@ -109,10 +111,12 @@ SmbUtil::SmbUtil() :
 //        {"banana_related", 0x805D4EA0, 0x6f0},
 //      {"mainloop_bss0_first_quarter", 0x8054c8e0, 0x37696},
 //        {"mainloop_bss0_part1.5", 0x80583f6a, 0x37696},
-      {"mainloop_bss0_part2", 0x805bb600, 0x6ed2c},
+//      {"mainloop_bss0_part2", 0x805bb600, 0x6ed2c},
 //        {"main_game_stage_heap", 0x80adae00, 3276832},
 //      {"dol_bss0",  0x80144d20, 0x53b20},
 //        {"literally_everything", 0x80000000, 0x1800000},
+
+        {"temporary ape region", 0x81094a40, 0x2400},
         {"empty",                 0x80000000, 0},
     },
 
