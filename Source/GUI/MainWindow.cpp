@@ -94,6 +94,8 @@ void MainWindow::makeMenus()
 
 void MainWindow::initialiseWidgets()
 {
+  m_smbUtil = new SmbUtilWidget();
+
   m_scanner = new MemScanWidget();
   connect(m_scanner, &MemScanWidget::requestAddWatchEntry, this, &MainWindow::addWatchRequested);
   connect(m_scanner, &MemScanWidget::requestAddAllResultsToWatchList, this,
@@ -127,14 +129,19 @@ void MainWindow::makeLayouts()
   dolphinHookButtons_layout->addWidget(m_btnAttempHook);
   dolphinHookButtons_layout->addWidget(m_btnUnhook);
 
-  QFrame* separatorline = new QFrame();
-  separatorline->setFrameShape(QFrame::HLine);
+  QFrame* separatorline1 = new QFrame();
+  separatorline1->setFrameShape(QFrame::HLine);
+
+  QFrame* separatorline2 = new QFrame();
+  separatorline2->setFrameShape(QFrame::HLine);
 
   QVBoxLayout* mainLayout = new QVBoxLayout;
   mainLayout->addWidget(m_lblDolphinStatus);
   mainLayout->addLayout(dolphinHookButtons_layout);
   mainLayout->addWidget(m_lblMem2Status);
-  mainLayout->addWidget(separatorline);
+  mainLayout->addWidget(separatorline1);
+  mainLayout->addWidget(m_smbUtil);
+  mainLayout->addWidget(separatorline2);
   mainLayout->addWidget(m_scanner);
   mainLayout->addSpacing(5);
   mainLayout->addWidget(m_btnOpenMemViewer);
@@ -290,6 +297,7 @@ void MainWindow::onHookAttempt()
     m_watcher->getFreezeTimer()->start(SConfig::getInstance().getFreezeTimerMs());
     m_viewer->getUpdateTimer()->start(SConfig::getInstance().getViewerUpdateTimerMs());
     m_viewer->hookStatusChanged(true);
+    m_smbUtil->hookStatusChanged(true);
     updateMem2Status();
   }
 }
@@ -301,6 +309,7 @@ void MainWindow::onUnhook()
   m_watcher->getFreezeTimer()->stop();
   m_viewer->getUpdateTimer()->stop();
   m_viewer->hookStatusChanged(false);
+  m_smbUtil->hookStatusChanged(false);
   m_lblMem2Status->setText(QString(""));
   DolphinComm::DolphinAccessor::unHook();
   updateDolphinHookingStatus();
