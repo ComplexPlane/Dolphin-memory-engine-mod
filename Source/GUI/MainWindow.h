@@ -52,7 +52,7 @@ private:
   SmbUtilWidget* m_smbUtil;
   MemWatchWidget* m_watcher;
   MemScanWidget* m_scanner;
-  MemViewerWidget* m_viewer;
+  // MemViewerWidget* m_viewer;
 
   QLabel* m_lblDolphinStatus;
   QPushButton* m_btnAttempHook;

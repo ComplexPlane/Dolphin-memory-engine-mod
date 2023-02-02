@@ -25,7 +25,7 @@ MainWindow::MainWindow()
 
 MainWindow::~MainWindow()
 {
-  delete m_viewer;
+  // delete m_viewer;
   delete m_watcher;
   DolphinComm::DolphinAccessor::free();
 }
@@ -155,9 +155,9 @@ void MainWindow::makeLayouts()
 
 void MainWindow::makeMemViewer()
 {
-  m_viewer = new MemViewerWidget(nullptr, Common::MEM1_START);
-  connect(m_viewer, &MemViewerWidget::mustUnhook, this, &MainWindow::onUnhook);
-  connect(m_viewer, &MemViewerWidget::addWatchRequested, m_watcher, &MemWatchWidget::addWatchEntry);
+  // m_viewer = new MemViewerWidget(nullptr, Common::MEM1_START);
+  // connect(m_viewer, &MemViewerWidget::mustUnhook, this, &MainWindow::onUnhook);
+  // connect(m_viewer, &MemViewerWidget::addWatchRequested, m_watcher, &MemWatchWidget::addWatchEntry);
   connect(m_watcher, &MemWatchWidget::goToAddressInViewer, this,
           &MainWindow::onOpenMemViewerWithAddress);
 }
@@ -204,14 +204,14 @@ void MainWindow::addWatchRequested(u32 address, Common::MemType type, size_t len
 
 void MainWindow::onOpenMenViewer()
 {
-  m_viewer->show();
-  m_viewer->raise();
+  // m_viewer->show();
+  // m_viewer->raise();
 }
 
 void MainWindow::onOpenMemViewerWithAddress(u32 address)
 {
-  m_viewer->goToAddress(address);
-  m_viewer->show();
+  // m_viewer->goToAddress(address);
+  // m_viewer->show();
 }
 
 void MainWindow::updateMem2Status()
@@ -232,7 +232,7 @@ void MainWindow::updateMem2Status()
       strAram = tr(", the ARAM is inaccessible, turn off MMU to use it");
   }
   m_lblMem2Status->setText(strMem2 + strAram);
-  m_viewer->onMEM2StatusChanged(DolphinComm::DolphinAccessor::isMEM2Present());
+  // m_viewer->onMEM2StatusChanged(DolphinComm::DolphinAccessor::isMEM2Present());
 }
 
 void MainWindow::updateDolphinHookingStatus()
@@ -295,8 +295,8 @@ void MainWindow::onHookAttempt()
     m_scanner->getUpdateTimer()->start(SConfig::getInstance().getScannerUpdateTimerMs());
     m_watcher->getUpdateTimer()->start(SConfig::getInstance().getWatcherUpdateTimerMs());
     m_watcher->getFreezeTimer()->start(SConfig::getInstance().getFreezeTimerMs());
-    m_viewer->getUpdateTimer()->start(SConfig::getInstance().getViewerUpdateTimerMs());
-    m_viewer->hookStatusChanged(true);
+    // m_viewer->getUpdateTimer()->start(SConfig::getInstance().getViewerUpdateTimerMs());
+    // m_viewer->hookStatusChanged(true);
     m_smbUtil->hookStatusChanged(true);
     updateMem2Status();
   }
@@ -307,8 +307,8 @@ void MainWindow::onUnhook()
   m_scanner->getUpdateTimer()->stop();
   m_watcher->getUpdateTimer()->stop();
   m_watcher->getFreezeTimer()->stop();
-  m_viewer->getUpdateTimer()->stop();
-  m_viewer->hookStatusChanged(false);
+  // m_viewer->getUpdateTimer()->stop();
+  // m_viewer->hookStatusChanged(false);
   m_smbUtil->hookStatusChanged(false);
   m_lblMem2Status->setText(QString(""));
   DolphinComm::DolphinAccessor::unHook();
@@ -356,14 +356,14 @@ void MainWindow::onOpenSettings()
     m_scanner->getUpdateTimer()->stop();
     m_watcher->getUpdateTimer()->stop();
     m_watcher->getFreezeTimer()->stop();
-    m_viewer->getUpdateTimer()->stop();
+    // m_viewer->getUpdateTimer()->stop();
     if (DolphinComm::DolphinAccessor::getStatus() ==
         DolphinComm::DolphinAccessor::DolphinStatus::hooked)
     {
       m_scanner->getUpdateTimer()->start(SConfig::getInstance().getScannerUpdateTimerMs());
       m_watcher->getUpdateTimer()->start(SConfig::getInstance().getWatcherUpdateTimerMs());
       m_watcher->getFreezeTimer()->start(SConfig::getInstance().getFreezeTimerMs());
-      m_viewer->getUpdateTimer()->start(SConfig::getInstance().getViewerUpdateTimerMs());
+      // m_viewer->getUpdateTimer()->start(SConfig::getInstance().getViewerUpdateTimerMs());
     }
   }
 }
@@ -388,7 +388,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
 {
   if (m_watcher->warnIfUnsavedChanges())
   {
-    m_viewer->close();
+    // m_viewer->close();
     event->accept();
   }
   else
