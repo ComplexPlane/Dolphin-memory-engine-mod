@@ -49,6 +49,7 @@ private:
   void makeMemViewer();
   void firstHookAttempt();
 
+  SmbUtilWidget* m_smbUtil;
   MemWatchWidget* m_watcher;
   MemScanWidget* m_scanner;
   MemViewerWidget* m_viewer;
